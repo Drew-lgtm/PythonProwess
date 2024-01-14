@@ -1,6 +1,7 @@
-result = 0
-for i in range(1000):
-  if i % 3 == 0 or i % 5 == 0:
-    result = result + i
+result = set()
+for i in range(1, 1001):
+    if i % 3 == 0 or i % 5 == 0:
+        result.add(i)
 
-print(result)
+print(sum(result))
+
