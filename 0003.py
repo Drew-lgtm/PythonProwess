@@ -1,4 +1,8 @@
 def is_number_prime(number):
+
+    if type(number) == float:
+        return False
+
     if number <= 1:
         return False
 
@@ -32,15 +36,11 @@ def is_number_prime(number):
 
 main_number = 13195
 
-def prime_factors(main_number):
+def prime_factors(main_number = 13195):
     for i in range(main_number):
         colon = main_number - i
         if is_number_prime(colon):
-            if main_number % colon == 0:
+            if is_number_prime(main_number %  colon) and is_number_prime(main_number / colon):
                 print(colon)
-            elif is_number_prime(main_number %  colon):
-                print(colon)
-            else:
-                pass
 
 prime_factors(main_number)
