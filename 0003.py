@@ -1,16 +1,20 @@
-def is_prime(number):
+def is_number_prime(number):
     if number <= 1:
         return False
-    elif number == 3:
+
+    if number <= 3:
         return True
-    elif number == 5:
-        return True
-    elif number == 7:
-        return True
-    elif number % 2 == 0 or number % 3 == 0 or number % 5 == 0 or number % 7 == 0:
+
+    if number % 2 == 0 or number % 3 == 0:
         return False
-    else:
-        return True
+
+    i = 5
+    while i * i <= number:
+        if number % i == 0 or number % (i + 2) == 0:
+            return False
+        i += 6
+
+    return True
 
 while True:
     number = input("Enter a number (or 'q' to quit): ")
@@ -19,7 +23,7 @@ while True:
 
     try:
         number = int(number)
-        if is_prime(number):
+        if is_number_prime(number):
             print(number, "is a prime number")
         else:
             print(number, "is NOT a prime number")
