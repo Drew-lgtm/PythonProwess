@@ -16,7 +16,7 @@ def is_number_prime(number):
 
     return True
 
-while True:
+"""while True:
     number = input("Enter a number (or 'q' to quit): ")
     if number.lower() == 'q':
         break
@@ -28,4 +28,19 @@ while True:
         else:
             print(number, "is NOT a prime number")
     except ValueError:
-        print("Invalid input. Please enter a number or 'q' to quit.")
+        print("Invalid input. Please enter a number or 'q' to quit.")"""
+
+main_number = 13195
+
+def prime_factors(main_number):
+    for i in range(main_number):
+        colon = main_number - i
+        if is_number_prime(colon):
+            if main_number % colon == 0:
+                print(colon)
+            elif is_number_prime(main_number %  colon):
+                print(colon)
+            else:
+                pass
+
+prime_factors(main_number)
