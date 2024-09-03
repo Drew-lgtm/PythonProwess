@@ -7,3 +7,4 @@
 
 ### Branch - albert_case_study
   - case study for an interview
+  - instructions are in instructions.md
