@@ -4,3 +4,6 @@
 
 ### Branch - ProjectEuler
   - https://projecteuler.net/archives
+
+### Branch - albert_case_study
+  - case study for an interview
