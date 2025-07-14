@@ -8,6 +8,7 @@
 
 ## Branch - albert_case_study
   - Job interview assesment
+  - instructions are in instructions.md
 
 
 ## Branch - youtube_downloader
