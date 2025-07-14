@@ -5,7 +5,7 @@
 ### Branch - ProjectEuler
   - https://projecteuler.net/archives
 
-## Branch - albert_case_study
+### Branch - albert_case_study
   - Job interview assesment
 
 ### Branch - youtube_downloader
