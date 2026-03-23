@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 random.seed(42)
 
-recors = input("Number of recors: ")
+number_of_records = input("Number of recors: ")
 
 countries = [
     "Canada",
@@ -36,7 +36,7 @@ def random_signup_date():
 
 
 rows = []
-for i in range(1, 1001):
+for i in range(1, int(number_of_records)):
     age = random.randint(18, 99)
     country = random.choice(countries)
     plan = random.choice(plans)
