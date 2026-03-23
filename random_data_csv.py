@@ -36,7 +36,7 @@ def random_signup_date():
 
 
 rows = []
-for i in range(1, int(number_of_records)):
+for i in range(1, int(number_of_records) + 1):
     age = random.randint(18, 99)
     country = random.choice(countries)
     plan = random.choice(plans)
