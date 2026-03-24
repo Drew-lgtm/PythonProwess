@@ -35,6 +35,9 @@ def random_signup_date():
     return start + timedelta(days=random.randint(0, delta_days))
 
 
+unique_transaction = 0
+
+
 rows = []
 for i in range(1, int(number_of_records) + 1):
     age = random.randint(18, 99)
@@ -43,10 +46,11 @@ for i in range(1, int(number_of_records) + 1):
     monthly_spend = round(random.uniform(0, 1000), 2)
     random_ip = ".".join(str(random.randint(0, 255)) for _ in range(4))
     device = f"device_{random.randint(1, 300)}"
+    random_decimal = random.randint(0, 100)
 
     rows.append(
         {
-            "customer_id": f"CUST{i:05d}",
+            "customer_id": f"CUST{i:08d}",
             "age": age,
             "country": country,
             "plan": plan,
@@ -54,6 +58,7 @@ for i in range(1, int(number_of_records) + 1):
             "monthly_spend": monthly_spend,
             "IP": random_ip,
             "singup_date": random_signup_date(),
+            "transaction_id": f"TRAN_{random_decimal}{i:08d}",
         }
     )
 
