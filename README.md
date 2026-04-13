@@ -19,6 +19,6 @@
   - generates CSV file with random data, good for database testing. 
 
   
-## PDF merge
+## Branch - pdf_merge
 Prerequisities: pip install pypdf
  - simple GUI program to merge PDFs
