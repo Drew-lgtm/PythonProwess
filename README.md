@@ -15,4 +15,8 @@
   - Youtube downloader project. Place  URL, get your mp3 downloaded.
 
 ## Branch - random_data_generator
-  -
+  - 
+
+## PDF merge
+Prerequisities: pip install pypdf
+ - simple script to merge two PDFs
