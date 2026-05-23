@@ -1,6 +1,7 @@
 import tkinter as tk
 import os
 import subprocess
+import threading
 from tkinter import messagebox
 
 def download_video():
@@ -21,16 +22,23 @@ def download_video():
     ]
 
     download_button.config(state="disabled", text="Downloading...")
-    root.update()
+    threading.Thread(target=run_download, args=(command, download_path), daemon=True).start()
+
+def run_download(command, download_path):
     try:
         subprocess.run(command, check=True)
-        messagebox.showinfo("Success", f"Download completed.\nSaved to: {download_path}")
+        root.after(0, on_download_done, True, f"Download completed.\nSaved to: {download_path}")
     except FileNotFoundError:
-        messagebox.showerror("Error", "yt-dlp is not installed or not on PATH.\nInstall it with: pip install yt-dlp")
+        root.after(0, on_download_done, False, "yt-dlp is not installed or not on PATH.\nInstall it with: pip install yt-dlp")
     except subprocess.CalledProcessError as e:
-        messagebox.showerror("Error", f"Download failed:\n{e}")
-    finally:
-        download_button.config(state="normal", text="Download MP3")
+        root.after(0, on_download_done, False, f"Download failed:\n{e}")
+
+def on_download_done(success, message):
+    download_button.config(state="normal", text="Download MP3")
+    if success:
+        messagebox.showinfo("Success", message)
+    else:
+        messagebox.showerror("Error", message)
 
 # GUI setup
 root = tk.Tk()
