@@ -5,30 +5,32 @@ from tkinter import messagebox
 
 def download_video():
     url = url_entry.get().strip()
-    if "youtu" not in url:
+    if "youtube.com" not in url and "youtu.be" not in url:
         messagebox.showerror("Error", "Please enter a valid YouTube URL")
         return
 
+    download_path = os.path.expanduser("~/Downloads/mp3")
+    os.makedirs(download_path, exist_ok=True)
+
+    command = [
+        "yt-dlp",
+        "--extract-audio",
+        "--audio-format", "mp3",
+        "-o", os.path.join(download_path, "%(title).100s.%(ext)s"),
+        url,
+    ]
+
+    download_button.config(state="disabled", text="Downloading...")
+    root.update()
     try:
-        # Create download directory
-        download_path = os.path.expanduser("~/Downloads/mp3")
-        os.makedirs(download_path, exist_ok=True)
-
-        # yt-dlp command with playlist + mp3
-        command = [
-            "yt-dlp",
-            "--extract-audio",
-            "--audio-format", "mp3",
-            "--yes-playlist",
-            "-o", os.path.join(download_path, "%(title).100s.%(ext)s"),
-            url
-        ]
-
         subprocess.run(command, check=True)
-
         messagebox.showinfo("Success", f"Download completed.\nSaved to: {download_path}")
+    except FileNotFoundError:
+        messagebox.showerror("Error", "yt-dlp is not installed or not on PATH.\nInstall it with: pip install yt-dlp")
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Error", f"Download failed:\n{e}")
+    finally:
+        download_button.config(state="normal", text="Download MP3")
 
 # GUI setup
 root = tk.Tk()
