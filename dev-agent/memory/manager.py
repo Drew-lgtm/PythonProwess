@@ -103,11 +103,17 @@ def clear_history() -> None:
         MEMORY_FILE.unlink()
 
 
-def trim_history(history: list[dict], max_user_turns: int = 10) -> list[dict]:
+def _history_role(item) -> str | None:
+    """Read a role from serialized history dicts or SDK Content objects."""
+    role = item.get("role") if isinstance(item, dict) else getattr(item, "role", None)
+    return getattr(role, "value", role)
+
+
+def trim_history(history, max_user_turns: int = 10):
     """Keep only the last `max_user_turns` user messages (and what follows)."""
     if not history:
         return history
-    user_indices = [i for i, h in enumerate(history) if h.get("role") == "user"]
+    user_indices = [i for i, h in enumerate(history) if _history_role(h) == "user"]
     if len(user_indices) <= max_user_turns:
         return history
     cutoff = user_indices[-max_user_turns]

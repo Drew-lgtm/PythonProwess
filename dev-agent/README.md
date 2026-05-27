@@ -5,12 +5,21 @@ commands (with your approval), and operates on git - all on your machine.
 
 ## Setup
 
+Run these commands from the `dev-agent` directory:
+
 ```powershell
 python -m pip install -r requirements.txt
 $env:GEMINI_API_KEY = "<your-key>"
 ```
 
 Get a key at https://aistudio.google.com/apikey (free tier is enough).
+
+If you are in the repository root instead, prefix paths with `dev-agent\`:
+
+```powershell
+python -m pip install -r dev-agent\requirements.txt
+python dev-agent\main.py --list-personas
+```
 
 ## Run it
 
@@ -44,6 +53,20 @@ python main.py --persona reviewer "review the current diff"
 ```
 
 `tester` is kept as a backwards-compatible alias for `reviewer`.
+
+## Operational Smoke Test
+
+From the repository root:
+
+```powershell
+python dev-agent\main.py --list-personas
+python dev-agent\main.py --persona planner --cwd . "Inspect the repo and suggest one safe README improvement"
+python dev-agent\main.py --persona reviewer --cwd . "Check git status and summarize current changes"
+python dev-agent\main.py --persona developer --cwd . "Create a small scratch file named agent-smoke-test.txt with one sentence"
+```
+
+The developer persona should show a diff before writing. When you later ask it
+to stage or commit, it should ask for approval first.
 
 ## Flags
 
