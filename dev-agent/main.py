@@ -4,9 +4,6 @@ import os
 import sys
 from pathlib import Path
 
-from google import genai
-from google.genai import types
-
 from tools import _sandbox, files, git, shell
 from memory import manager
 
@@ -14,34 +11,68 @@ from memory import manager
 MODEL_NAME = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 DEFAULT_MAX_TOOL_CALLS = 20
 PROMPT_DIR = Path(__file__).parent / "prompts"
+PERSONA_ALIASES = {"tester": "reviewer"}
 
 
-def load_persona(name: str) -> str:
-    """Load a persona system prompt (e.g. 'developer', 'tester')."""
-    path = PROMPT_DIR / f"{name}.txt"
+def available_personas() -> list[str]:
+    """Return persona names backed by prompts/<name>.txt files."""
+    return sorted(p.stem for p in PROMPT_DIR.glob("*.txt"))
+
+
+def resolve_persona(name: str) -> str:
+    """Resolve backwards-compatible persona aliases."""
+    return PERSONA_ALIASES.get(name, name)
+
+
+def load_persona(name: str) -> tuple[str, str]:
+    """Load a persona system prompt (e.g. 'planner', 'developer', 'reviewer')."""
+    persona = resolve_persona(name)
+    path = PROMPT_DIR / f"{persona}.txt"
     if not path.exists():
-        available = ", ".join(sorted(p.stem for p in PROMPT_DIR.glob("*.txt")))
+        available = ", ".join(available_personas())
+        aliases = ", ".join(f"{k}->{v}" for k, v in sorted(PERSONA_ALIASES.items()))
+        if aliases:
+            available = f"{available} (aliases: {aliases})"
         raise FileNotFoundError(
             f"Unknown persona '{name}'. Available: {available or '(none)'}"
         )
-    return path.read_text(encoding="utf-8")
+    return persona, path.read_text(encoding="utf-8")
 
 
-def build_chat(client: genai.Client, system_prompt: str, history_dicts: list[dict]):
+def tools_for_persona(persona: str) -> list:
+    """Return the tool set for a persona.
+
+    New personas default to inspection tools until explicitly granted edit/git writes.
+    """
+    inspection_tools = [
+        files.read_file,
+        files.list_directory,
+        shell.run_command,
+        git.get_status,
+        git.get_diff,
+    ]
+    if persona != "developer":
+        return inspection_tools
+    return inspection_tools + [
+        files.write_file,
+        files.edit_file,
+        git.add_files,
+        git.commit_changes,
+        git.push_changes,
+    ]
+
+
+def build_chat(
+    client,
+    system_prompt: str,
+    history_dicts: list[dict],
+    persona: str,
+):
+    from google.genai import types
+
     config = types.GenerateContentConfig(
         system_instruction=system_prompt,
-        tools=[
-            files.read_file,
-            files.write_file,
-            files.edit_file,
-            files.list_directory,
-            shell.run_command,
-            git.get_status,
-            git.get_diff,
-            git.add_files,
-            git.commit_changes,
-            git.push_changes,
-        ],
+        tools=tools_for_persona(persona),
         automatic_function_calling=types.AutomaticFunctionCallingConfig(
             maximum_remote_calls=DEFAULT_MAX_TOOL_CALLS,
         ),
@@ -79,6 +110,10 @@ def main() -> None:
         help="Which prompts/<name>.txt to load (default: developer).",
     )
     parser.add_argument(
+        "--list-personas", action="store_true",
+        help="List available personas and exit.",
+    )
+    parser.add_argument(
         "--reset", action="store_true",
         help="Clear chat history before starting.",
     )
@@ -92,6 +127,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if args.list_personas:
+        print("Available personas:")
+        for persona in available_personas():
+            print(f"- {persona}")
+        if PERSONA_ALIASES:
+            print("Aliases:")
+            for alias, persona in sorted(PERSONA_ALIASES.items()):
+                print(f"- {alias} -> {persona}")
+        return
+
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         print("Error: GEMINI_API_KEY environment variable is not set.")
@@ -101,11 +146,12 @@ def main() -> None:
     print(f"[sandbox] {_sandbox.get_base_dir()}")
 
     try:
-        system_prompt = load_persona(args.persona)
+        persona, system_prompt = load_persona(args.persona)
     except FileNotFoundError as e:
         print(f"Error: {e}")
         sys.exit(1)
-    print(f"[persona] {args.persona}")
+    persona_label = persona if persona == args.persona else f"{args.persona} -> {persona}"
+    print(f"[persona] {persona_label}")
     print(f"[model]   {MODEL_NAME}")
 
     if args.reset:
@@ -113,8 +159,10 @@ def main() -> None:
         print("[memory] history cleared")
 
     history_dicts = manager.trim_history(manager.load_history(), args.max_history)
+    from google import genai
+
     client = genai.Client(api_key=api_key)
-    chat = build_chat(client, system_prompt, history_dicts)
+    chat = build_chat(client, system_prompt, history_dicts, persona)
 
     if args.task:
         task = " ".join(args.task)
@@ -138,7 +186,7 @@ def main() -> None:
             break
         if user_input == "/reset":
             manager.clear_history()
-            chat = build_chat(client, system_prompt, [])
+            chat = build_chat(client, system_prompt, [], persona)
             print("[memory] history cleared")
             continue
         send_and_report(chat, user_input)
